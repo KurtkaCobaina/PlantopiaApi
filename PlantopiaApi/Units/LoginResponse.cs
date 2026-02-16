@@ -1,4 +1,4 @@
-
+using System.Text.Json.Serialization;
 public class LoginResponse
 {
     public string SessionId { get; set; }
@@ -11,4 +11,6 @@ public class LoginResponse
     public string UserRole { get; set; }
     
     public string ApiKey { get; set; }
+    [JsonPropertyName("ndvi_api_key")] 
+    public string? NDVIApiKey { get; set; }
 }

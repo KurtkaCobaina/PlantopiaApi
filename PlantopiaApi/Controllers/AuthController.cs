@@ -55,7 +55,8 @@ namespace PlantopiaApi.Controllers
                 UserRole = user.UserRole,
                 ApiKey = user.ApiKey,
                 CreatedAt = DateTime.UtcNow,
-                LastActivity = DateTime.UtcNow
+                LastActivity = DateTime.UtcNow,
+                NDVIApiKey =  user.NDVIApiKey
             };
 
             // Сохранение сессии в памяти
@@ -74,7 +75,8 @@ namespace PlantopiaApi.Controllers
                 Phone = user.Phone,
                 SubscriptionStatus = user.SubscriptionStatus,
                 UserRole = user.UserRole,
-                ApiKey = user.ApiKey
+                ApiKey = user.ApiKey,
+                NDVIApiKey = user.NDVIApiKey
             };
 
             return Ok(response);
@@ -129,7 +131,8 @@ namespace PlantopiaApi.Controllers
                 phone = session.Phone,
                 subscriptionStatus = session.SubscriptionStatus,
                 userRole = session.UserRole,
-                apiKey = session.ApiKey
+                apiKey = session.ApiKey,
+                ndvdiApiKey = session.NDVIApiKey
             });
         }
     }

@@ -50,6 +50,6 @@ namespace PlantopiaApi.Models
 
         public virtual User? User { get; set; }
         public virtual Expert? Expert { get; set; }
-        public virtual ICollection<Diagnosis>? Diagnoses { get; set; }
+      
     }
 }

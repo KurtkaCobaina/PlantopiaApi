@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using Npgsql;
 using PlantopiaApi.Data;
 
+// Добавляем HttpClient
 var builder = WebApplication.CreateBuilder(args);
 
 // Строка подключения
@@ -34,17 +35,16 @@ builder.Services.AddSwaggerGen(options =>
     });
 });
 
-// Настройка CORS - ДОБАВЛЕНО
+// Настройка CORS
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReactApp", policy =>
     {
-        policy.WithOrigins("http://localhost:5173", "http://localhost:3000") // Добавьте порты ваших React-приложений
+        policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 
-    // Политика для разработки (НЕ используйте в продакшене!)
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
@@ -57,6 +57,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<PlantopiaDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+// Регистрация HttpClient с настройками
+builder.Services.AddHttpClient("ExternalApi", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+    client.DefaultRequestHeaders.Add("User-Agent", "PlantopiaApi/1.0");
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -67,8 +74,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 
-// Включите CORS - ОЧЕНЬ ВАЖНО: до UseAuthorization
-app.UseCors("AllowAll"); // или "AllowReactApp" - выбор зависит от ваших предпочтений
+app.UseCors("AllowAll");
+app.UseStaticFiles();
 
 app.UseAuthorization();
 app.MapControllers();

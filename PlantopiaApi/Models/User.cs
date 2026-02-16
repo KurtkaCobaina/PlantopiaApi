@@ -46,7 +46,9 @@ namespace PlantopiaApi.Models
 
         [Column("updated_at")]
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
-
+        [Column("ndvi_api_key")]
+        [MaxLength(4000)]
+        public string? NDVIApiKey { get; set; }
         // Навигационные свойства — БЕЗ ConsultationsAsExpert
         public virtual ICollection<Expert>? Experts { get; set; }
         public virtual ICollection<Consultation>? ConsultationsAsUser { get; set; }

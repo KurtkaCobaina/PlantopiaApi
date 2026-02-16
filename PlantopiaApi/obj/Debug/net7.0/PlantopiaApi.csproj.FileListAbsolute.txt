@@ -1,5 +1,6 @@
 /Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/bin/Debug/net7.0/appsettings.Development.json
 /Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/bin/Debug/net7.0/appsettings.json
+/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/bin/Debug/net7.0/PlantopiaApi.staticwebassets.runtime.json
 /Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/bin/Debug/net7.0/PlantopiaApi
 /Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/bin/Debug/net7.0/PlantopiaApi.deps.json
 /Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/bin/Debug/net7.0/PlantopiaApi.runtimeconfig.json

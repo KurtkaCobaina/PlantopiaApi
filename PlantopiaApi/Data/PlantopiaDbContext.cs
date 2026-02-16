@@ -1,3 +1,4 @@
+// Data/PlantopiaDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Models;
 
@@ -14,7 +15,9 @@ namespace PlantopiaApi.Data
         public DbSet<FertilizerCalculation> FertilizerCalculations { get; set; } = null!;
         public DbSet<NdviMap> NdviMaps { get; set; } = null!;
         public DbSet<SoilTest> SoilTests { get; set; } = null!;
-        public DbSet<UserTask> UserTasks { get; set; } = null!; // ← ИСПРАВЛЕНО: UserTask вместо Task
+        public DbSet<UserTask> UserTasks { get; set; } = null!;
+        public DbSet<Crop> Crops { get; set; } = null!;
+        public DbSet<SoilType> SoilTypes { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,15 +46,13 @@ namespace PlantopiaApi.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
 
-                // Связь с пользователем (кто заказал консультацию)
                 entity.HasOne(c => c.User)
                     .WithMany(u => u.ConsultationsAsUser)
                     .HasForeignKey(c => c.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // Связь с экспертом — без обратной навигации к User
                 entity.HasOne(c => c.Expert)
-                    .WithMany() // ← убрали указание на User.ConsultationsAsExpert
+                    .WithMany()
                     .HasForeignKey(c => c.ExpertId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
@@ -65,10 +66,9 @@ namespace PlantopiaApi.Data
                       .WithMany(u => u.Diagnoses)
                       .HasForeignKey(d => d.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
-                entity.HasOne(d => d.Consultation)
-                      .WithMany(c => c.Diagnoses)
-                      .HasForeignKey(d => d.ConsultationId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                entity.Ignore("Consultation");
+                entity.Ignore("ConsultationId");
+                entity.Ignore("ConsultationId1");
             });
 
             modelBuilder.Entity<FertilizerCalculation>(entity =>
@@ -80,6 +80,17 @@ namespace PlantopiaApi.Data
                       .WithMany(u => u.FertilizerCalculations)
                       .HasForeignKey(f => f.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+                
+                // Добавляем связи с Crop и SoilType
+                entity.HasOne<Crop>()
+                      .WithMany()
+                      .HasForeignKey(f => f.CropId)
+                      .OnDelete(DeleteBehavior.SetNull);
+                
+                entity.HasOne<SoilType>()
+                      .WithMany()
+                      .HasForeignKey(f => f.SoilId)
+                      .OnDelete(DeleteBehavior.SetNull);
             });
 
             modelBuilder.Entity<NdviMap>(entity =>
@@ -111,9 +122,39 @@ namespace PlantopiaApi.Data
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
                 entity.HasOne(t => t.User)
-                      .WithMany(u => u.UserTasks) // ← согласовано с User.UserTasks
+                      .WithMany(u => u.UserTasks)
                       .HasForeignKey(t => t.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<Crop>(entity =>
+            {
+                entity.ToTable("crops");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name");
+                entity.Property(e => e.ScientificName).HasColumnName("scientific_name");
+                entity.Property(e => e.OptimalNG1m2Min).HasColumnName("optimal_n_g_1m2_min");
+                entity.Property(e => e.OptimalNG1m2Max).HasColumnName("optimal_n_g_1m2_max");
+                entity.Property(e => e.OptimalPG1m2Min).HasColumnName("optimal_p_g_1m2_min");
+                entity.Property(e => e.OptimalPG1m2Max).HasColumnName("optimal_p_g_1m2_max");
+                entity.Property(e => e.OptimalKG1m2Min).HasColumnName("optimal_k_g_1m2_min");
+                entity.Property(e => e.OptimalKG1m2Max).HasColumnName("optimal_k_g_1m2_max");
+                entity.Property(e => e.TypicalYieldKg1m2).HasColumnName("typical_yield_kg_1m2");
+                entity.Property(e => e.GrowthPeriodDays).HasColumnName("growth_period_days");
+            });
+
+            modelBuilder.Entity<SoilType>(entity =>
+            {
+                entity.ToTable("soil_types");
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.Name).HasColumnName("name");
+                entity.Property(e => e.PhLevelMin).HasColumnName("ph_level_min");
+                entity.Property(e => e.PhLevelMax).HasColumnName("ph_level_max");
+                entity.Property(e => e.NCorrectionFactor).HasColumnName("n_correction_factor").HasDefaultValue(1.0m);
+                entity.Property(e => e.PCorrectionFactor).HasColumnName("p_correction_factor").HasDefaultValue(1.0m);
+                entity.Property(e => e.KCorrectionFactor).HasColumnName("k_correction_factor").HasDefaultValue(1.0m);
             });
         }
     }

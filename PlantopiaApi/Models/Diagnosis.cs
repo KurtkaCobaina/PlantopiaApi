@@ -13,8 +13,7 @@ namespace PlantopiaApi.Models
         [Column("user_id")]
         public int UserId { get; set; }
 
-        [Column("consultation_id")]
-        public int ConsultationId { get; set; }
+        
 
         [Column("image_url")]
         public string? ImageUrl { get; set; }
@@ -39,6 +38,6 @@ namespace PlantopiaApi.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public virtual User? User { get; set; }
-        public virtual Consultation? Consultation { get; set; }
+       
     }
 }
