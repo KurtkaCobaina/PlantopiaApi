@@ -50,7 +50,7 @@ namespace PlantopiaApi.Models
         [MaxLength(4000)]
         public string? NDVIApiKey { get; set; }
         // Навигационные свойства — БЕЗ ConsultationsAsExpert
-        public virtual ICollection<Expert>? Experts { get; set; }
+   
         public virtual ICollection<Consultation>? ConsultationsAsUser { get; set; }
         public virtual ICollection<Diagnosis>? Diagnoses { get; set; }
         public virtual ICollection<FertilizerCalculation>? FertilizerCalculations { get; set; }

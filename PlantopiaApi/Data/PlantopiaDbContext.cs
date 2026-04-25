@@ -34,10 +34,7 @@ namespace PlantopiaApi.Data
                 entity.ToTable("experts");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
-                entity.HasOne(e => e.User)
-                      .WithMany(u => u.Experts)
-                      .HasForeignKey(e => e.UserId)
-                      .OnDelete(DeleteBehavior.Cascade);
+                
             });
 
             modelBuilder.Entity<Consultation>(entity =>

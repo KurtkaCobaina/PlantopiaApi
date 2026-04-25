@@ -51,7 +51,7 @@ public class RegistrationController : ControllerBase
         user.UpdatedAt = DateTime.UtcNow;
 
         // Обнуляем навигационные свойства (защита от ошибок сериализации)
-        user.Experts = null;
+       
         user.ConsultationsAsUser = null;
         user.Diagnoses = null;
         user.FertilizerCalculations = null;

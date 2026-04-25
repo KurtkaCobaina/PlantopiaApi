@@ -14,6 +14,11 @@ namespace PlantopiaApi.Models
         [MaxLength(4000)]
         public string? Email { get; set; }
 
+        // Поле password есть на схеме, добавляем его
+        [Column("password")]
+        [MaxLength(4000)]
+        public string? Password { get; set; }
+
         [Column("first_name")]
         [MaxLength(4000)]
         public string? FirstName { get; set; }
@@ -42,10 +47,24 @@ namespace PlantopiaApi.Models
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [Column("user_id")]
-        public int UserId { get; set; }
+        // Дополнительные поля адреса, видимые на схеме
+        [Column("country")]
+        [MaxLength(4000)]
+        public string? Country { get; set; }
 
-        public virtual User? User { get; set; }
+        [Column("region")]
+        [MaxLength(4000)]
+        public string? Region { get; set; }
+
+        [Column("city")]
+        [MaxLength(4000)]
+        public string? City { get; set; }
+
+        // ВАЖНО: Удаляем или комментируем связь с User, так как user_id нет в БД
+        // [Column("user_id")]
+        // public int UserId { get; set; }
+
+        // public virtual User? User { get; set; }
 
         public virtual ICollection<Consultation>? ConsultationsAsExpert { get; set; }
     }

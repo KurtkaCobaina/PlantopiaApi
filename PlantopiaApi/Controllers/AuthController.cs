@@ -135,6 +135,35 @@ namespace PlantopiaApi.Controllers
                 ndvdiApiKey = session.NDVIApiKey
             });
         }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            // Поиск пользователя по Email и Телефону
+            var user = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == request.Email && u.Phone == request.Phone);
+
+            if (user == null)
+            {
+                return Unauthorized(new { message = "Пользователь с такими данными не найден" });
+            }
+
+            // Обновление пароля
+            // В вашем проекте пароли хранятся в открытом виде (согласно AuthController Login)
+            user.Password = request.NewPassword;
+            user.UpdatedAt = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Пароль успешно изменен" });
+        }
+
+
+        
     }
 
     
