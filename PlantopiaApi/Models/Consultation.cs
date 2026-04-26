@@ -31,9 +31,10 @@ namespace PlantopiaApi.Models
         [MaxLength(4000)]
         public string? City { get; set; }
 
-        [Column("village")]
-        [MaxLength(4000)]
-        public string? Village { get; set; }
+        // УДАЛИТЕ ИЛИ ЗАКОММЕНТИРУЙТЕ ЭТО СВОЙСТВО, так как колонки village нет в БД
+        // [Column("village")]
+        // [MaxLength(4000)]
+        // public string? Village { get; set; }
 
         [Column("street_address")]
         public string? StreetAddress { get; set; }
@@ -48,8 +49,10 @@ namespace PlantopiaApi.Models
         [Column("created_at")]
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        [Column("hours")]
+        public int Hours { get; set; } = 1;
+
         public virtual User? User { get; set; }
         public virtual Expert? Expert { get; set; }
-      
     }
 }

@@ -1,4 +1,3 @@
-// Data/PlantopiaDbContext.cs
 using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Models;
 
@@ -29,12 +28,16 @@ namespace PlantopiaApi.Data
                 entity.Property(e => e.UpdatedAt).HasDefaultValueSql("now()");
             });
 
+            // Конфигурация Expert: убираем связь с User, так как в БД нет user_id в таблице experts
             modelBuilder.Entity<Expert>(entity =>
             {
                 entity.ToTable("experts");
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
                 
+                // Если в модели Expert осталось свойство UserId, его нужно игнорировать или удалить из модели
+                // entity.Ignore(e => e.UserId); 
+                // Но лучше просто не настраивать HasOne/WithMany, как сделано ниже.
             });
 
             modelBuilder.Entity<Consultation>(entity =>
@@ -43,15 +46,22 @@ namespace PlantopiaApi.Data
                 entity.HasKey(e => e.Id);
                 entity.Property(e => e.CreatedAt).HasDefaultValueSql("now()");
 
+                // Настройка связи с User
                 entity.HasOne(c => c.User)
                     .WithMany(u => u.ConsultationsAsUser)
                     .HasForeignKey(c => c.UserId)
                     .OnDelete(DeleteBehavior.Cascade);
 
+                // Настройка связи с Expert
                 entity.HasOne(c => c.Expert)
-                    .WithMany()
+                    .WithMany(e => e.ConsultationsAsExpert) // Используем навигационное свойство из Expert
                     .HasForeignKey(c => c.ExpertId)
                     .OnDelete(DeleteBehavior.Cascade);
+                
+                // Явно указываем маппинг для Hours, чтобы EF точно знал о колонке
+                entity.Property(e => e.Hours)
+                      .HasColumnName("hours")
+                      .IsRequired();
             });
 
             modelBuilder.Entity<Diagnosis>(entity =>
@@ -63,6 +73,8 @@ namespace PlantopiaApi.Data
                       .WithMany(u => u.Diagnoses)
                       .HasForeignKey(d => d.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
+                
+                // Игнорируем несуществующие в БД поля, если они есть в модели
                 entity.Ignore("Consultation");
                 entity.Ignore("ConsultationId");
                 entity.Ignore("ConsultationId1");
@@ -78,7 +90,6 @@ namespace PlantopiaApi.Data
                       .HasForeignKey(f => f.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
                 
-                // Добавляем связи с Crop и SoilType
                 entity.HasOne<Crop>()
                       .WithMany()
                       .HasForeignKey(f => f.CropId)
@@ -128,7 +139,6 @@ namespace PlantopiaApi.Data
             {
                 entity.ToTable("crops");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.Name).HasColumnName("name");
                 entity.Property(e => e.ScientificName).HasColumnName("scientific_name");
                 entity.Property(e => e.OptimalNG1m2Min).HasColumnName("optimal_n_g_1m2_min");
@@ -145,7 +155,6 @@ namespace PlantopiaApi.Data
             {
                 entity.ToTable("soil_types");
                 entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).HasColumnName("id");
                 entity.Property(e => e.Name).HasColumnName("name");
                 entity.Property(e => e.PhLevelMin).HasColumnName("ph_level_min");
                 entity.Property(e => e.PhLevelMax).HasColumnName("ph_level_max");

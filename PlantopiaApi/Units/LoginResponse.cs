@@ -13,4 +13,11 @@ public class LoginResponse
     public string ApiKey { get; set; }
     [JsonPropertyName("ndvi_api_key")] 
     public string? NDVIApiKey { get; set; }
+    // --- НОВЫЕ ПОЛЯ ДЛЯ ЭКСПЕРТА ---
+    public string? Specialization { get; set; }
+    public int? ExperienceYears { get; set; }
+    public decimal? HourlyRate { get; set; }
+    public string? Country { get; set; }
+    public string? Region { get; set; }
+    public string? City { get; set; }
 }
