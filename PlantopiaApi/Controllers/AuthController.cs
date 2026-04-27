@@ -36,7 +36,6 @@ namespace PlantopiaApi.Controllers
                 return Unauthorized(new { message = "Неверный email или пароль" });
             }
 
-            // Создаем сессию фермера (доп. поля будут null)
             return CreateSessionAndResponse(
                 _farmerSessions, 
                 user.Id, 
@@ -48,7 +47,7 @@ namespace PlantopiaApi.Controllers
                 user.UserRole ?? "farmer", 
                 user.ApiKey, 
                 user.NDVIApiKey,
-                null, null, null, null, null, null // Специализация, Опыт, Ставка, Страна, Регион, Город
+                null, null, null, null, null, null
             );
         }
 
@@ -68,7 +67,6 @@ namespace PlantopiaApi.Controllers
                 return Unauthorized(new { message = "Неверный email или пароль эксперта" });
             }
 
-            // Создаем сессию эксперта с передачей всех дополнительных данных
             return CreateSessionAndResponse(
                 _expertSessions, 
                 expert.Id, 
@@ -76,12 +74,10 @@ namespace PlantopiaApi.Controllers
                 expert.FirstName, 
                 expert.LastName, 
                 expert.Phone, 
-                true, // SubscriptionStatus активен по умолчанию для экспертов
+                true, 
                 "expert", 
-                null, // ApiKey у экспертов обычно нет
-                null, // NDVIApiKey у экспертов обычно нет
-                
-                // --- ЗАПОЛНЯЕМ СПЕЦИФИЧНЫЕ ДАННЫЕ ЭКСПЕРТА ---
+                null, 
+                null,
                 expert.Specialization,
                 expert.ExperienceYears,
                 expert.HourlyRate,
@@ -119,7 +115,6 @@ namespace PlantopiaApi.Controllers
                 LastActivity = DateTime.UtcNow,
                 NDVIApiKey = ndviApiKey,
                 
-                // Заполняем новые поля
                 Specialization = specialization,
                 ExperienceYears = experienceYears,
                 HourlyRate = hourlyRate,
@@ -146,7 +141,6 @@ namespace PlantopiaApi.Controllers
                 ApiKey = apiKey,
                 NDVIApiKey = ndviApiKey,
                 
-                // Заполняем новые поля ответа
                 Specialization = specialization,
                 ExperienceYears = experienceYears,
                 HourlyRate = hourlyRate,
@@ -233,7 +227,6 @@ namespace PlantopiaApi.Controllers
                 apiKey = session.ApiKey,
                 ndvdiApiKey = session.NDVIApiKey,
                 
-                // Возвращаем данные эксперта при валидации сессии тоже
                 specialization = session.Specialization,
                 experienceYears = session.ExperienceYears,
                 hourlyRate = session.HourlyRate,
@@ -243,6 +236,9 @@ namespace PlantopiaApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Восстановление пароля для ФЕРМЕРА
+        /// </summary>
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
@@ -259,6 +255,30 @@ namespace PlantopiaApi.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Пароль успешно изменен" });
+        }
+
+        /// <summary>
+        /// Восстановление пароля для ЭКСПЕРТА
+        /// </summary>
+        [HttpPost("expert-forgot-password")]
+        public async Task<IActionResult> ExpertForgotPassword([FromBody] ForgotPasswordRequest request)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            // Ищем эксперта по Email и Телефону в таблице Experts
+            var expert = await _context.Experts
+                .FirstOrDefaultAsync(e => e.Email == request.Email && e.Phone == request.Phone);
+
+            if (expert == null)
+                return Unauthorized(new { message = "Эксперт с такими данными не найден" });
+
+            // Обновляем пароль
+            expert.Password = request.NewPassword;
+           
+            
+            await _context.SaveChangesAsync();
+
+            return Ok(new { message = "Пароль эксперта успешно изменен" });
         }
         
         public class ForgotPasswordRequest

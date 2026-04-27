@@ -1,7 +1,7 @@
-// Controllers/SavedDataController.cs
 using Microsoft.AspNetCore.Mvc;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
+using PlantopiaApi.Units; // <-- Важно: подключаем пространство имен с DTO
 
 namespace PlantopiaApi.Controllers;
 
@@ -82,14 +82,42 @@ public class SavedDataController : ControllerBase
         return NoContent();
     }
 
-    // === FERTILIZER CALCULATIONS ===
+    // === FERTILIZER CALCULATIONS (ОБНОВЛЕНО) ===
 
     [HttpGet("savedfertilizer")]
     public IActionResult GetSavedFertilizer([FromQuery] int userId)
     {
+        // Выполняем Join с таблицами Crops и SoilTypes, чтобы получить названия
         var calculations = _context.FertilizerCalculations
             .Where(f => f.UserId == userId)
+            .Join(_context.Crops, 
+                calc => calc.CropId, 
+                crop => crop.Id, 
+                (calc, crop) => new { calc, crop })
+            .Join(_context.SoilTypes, 
+                joined => joined.calc.SoilId, 
+                soil => soil.Id, 
+                (joined, soil) => new FertilizerCalculationDto // <-- Возвращаем наш DTO из Units
+                {
+                    Id = joined.calc.Id,
+                    UserId = joined.calc.UserId,
+                    CropId = joined.calc.CropId,
+                    SoilId = joined.calc.SoilId,
+                    
+                    // Заполняем названия
+                    CropName = joined.crop.Name,       
+                    SoilName = soil.Name,              
+                    
+                    TargetYieldKgHa = joined.calc.TargetYieldKgHa,
+                    FieldAreaHa = joined.calc.FieldAreaHa,
+                    RecommendedNKgHa = joined.calc.RecommendedNKgHa,
+                    RecommendedPKgHa = joined.calc.RecommendedPKgHa,
+                    RecommendedKKgHa = joined.calc.RecommendedKKgHa,
+                    CalculatedAt = joined.calc.CalculatedAt
+                })
+            .OrderByDescending(c => c.CalculatedAt) // Опционально: сортировка по дате (новые сверху)
             .ToList();
+
         return Ok(calculations);
     }
 
