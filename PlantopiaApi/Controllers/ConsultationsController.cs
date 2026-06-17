@@ -47,7 +47,7 @@ namespace PlantopiaApi.Controllers
 
             if (!string.IsNullOrWhiteSpace(consultation.Country) && !string.IsNullOrWhiteSpace(expert.Country))
             {
-                if (!consultation.Country.Trim().Equals(expert.Country.Trim(), StringComparison.OrdinalIgnoreCase))
+                if (!NormalizeLocation(consultation.Country).Equals(NormalizeLocation(expert.Country), StringComparison.OrdinalIgnoreCase))
                 {
                     isLocationMatch = false;
                     mismatchField = "стране";
@@ -61,7 +61,7 @@ namespace PlantopiaApi.Controllers
 
             if (isLocationMatch && !string.IsNullOrWhiteSpace(consultation.Region) && !string.IsNullOrWhiteSpace(expert.Region))
             {
-                if (!consultation.Region.Trim().Equals(expert.Region.Trim(), StringComparison.OrdinalIgnoreCase))
+                if (!NormalizeLocation(consultation.Region).Equals(NormalizeLocation(expert.Region), StringComparison.OrdinalIgnoreCase))
                 {
                     isLocationMatch = false;
                     mismatchField = "регионе/области";
@@ -70,7 +70,7 @@ namespace PlantopiaApi.Controllers
 
             if (isLocationMatch && !string.IsNullOrWhiteSpace(consultation.City) && !string.IsNullOrWhiteSpace(expert.City))
             {
-                if (!consultation.City.Trim().Equals(expert.City.Trim(), StringComparison.OrdinalIgnoreCase))
+                if (!NormalizeLocation(consultation.City).Equals(NormalizeLocation(expert.City), StringComparison.OrdinalIgnoreCase))
                 {
                     isLocationMatch = false;
                     mismatchField = "городе";
@@ -220,6 +220,29 @@ namespace PlantopiaApi.Controllers
         private bool ConsultationExists(int id)
         {
             return _context.Consultations.Any(e => e.Id == id);
+        }
+
+        private string NormalizeLocation(string location)
+        {
+            if (string.IsNullOrWhiteSpace(location)) return string.Empty;
+
+            var normalized = location.Trim().ToLowerInvariant();
+
+            // Удаляем распространенные официальные термины
+            var wordsToRemove = new[] { "республика", "федерация", "область", "край", "автономный округ", "г.", "город" };
+            foreach (var word in wordsToRemove)
+            {
+                normalized = normalized.Replace(word, "").Trim();
+            }
+
+            // Убираем лишние пробелы, которые могли остаться после удаления слов
+            normalized = string.Join(" ", normalized.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
+
+            // Специальные исключения и сокращения
+            if (normalized == "российская" || normalized == "рф") normalized = "россия";
+            if (normalized == "санкт петербург" || normalized == "питер") normalized = "санкт-петербург";
+
+            return normalized;
         }
     }
 

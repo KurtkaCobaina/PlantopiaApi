@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "neveNXU7AWaWXIwrgWpauMrFYQy1dCeotGFtG5JknRs=",
+  "Hash": "TMalpF+afrDa8/bv5T5/Mj/2hHdn4qWHmyCZlfabD/0=",
   "Source": "PlantopiaApi",
   "BasePath": "_content/PlantopiaApi",
   "Mode": "Default",
@@ -16,6 +16,23 @@
     }
   ],
   "Assets": [
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/0806b5be-4fc7-445a-a31b-596f62ca0797.jpeg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/0806b5be-4fc7-445a-a31b-596f62ca0797.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/0806b5be-4fc7-445a-a31b-596f62ca0797.jpeg"
+    },
     {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/0c681ce4-3fb3-4b49-910f-e536ca820146.jpeg",
       "SourceId": "PlantopiaApi",
@@ -66,6 +83,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/16671352-c54d-45c8-a1f7-827d7ceef866.jpeg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/21473265-1de2-4d95-83fd-d66cbe1b4a52.jpg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/21473265-1de2-4d95-83fd-d66cbe1b4a52.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/21473265-1de2-4d95-83fd-d66cbe1b4a52.jpg"
     },
     {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/2bcd74be-4fbb-45c2-b38a-796c7d3061dd.jpeg",
@@ -170,6 +204,23 @@
       "OriginalItemSpec": "wwwroot/uploads/58e45ae3-fa77-4d68-bcbc-13985d31d1df.jpeg"
     },
     {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/5b15a1c7-86c3-4031-a77b-b69a5bdcadc5.jpeg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/5b15a1c7-86c3-4031-a77b-b69a5bdcadc5.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/5b15a1c7-86c3-4031-a77b-b69a5bdcadc5.jpeg"
+    },
+    {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/5ee25521-1339-492b-b970-707980dfa7b0.jpeg",
       "SourceId": "PlantopiaApi",
       "SourceType": "Discovered",
@@ -185,6 +236,40 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/5ee25521-1339-492b-b970-707980dfa7b0.jpeg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/610dd0ff-a549-4564-bca7-25293ecb13c3.jpeg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/610dd0ff-a549-4564-bca7-25293ecb13c3.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/610dd0ff-a549-4564-bca7-25293ecb13c3.jpeg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/61f7897f-093e-4902-8791-6df7253e628f.jpeg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/61f7897f-093e-4902-8791-6df7253e628f.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/61f7897f-093e-4902-8791-6df7253e628f.jpeg"
     },
     {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/6bd87604-ac61-49f2-8ec9-7f451f1fa5e4.jpeg",
@@ -219,6 +304,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/727e6ccd-3c64-48bd-8db2-a234208c6e9d.jpeg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/7471ed7d-b1d4-4cf8-a832-e0ccbd56c73b.jpeg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/7471ed7d-b1d4-4cf8-a832-e0ccbd56c73b.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/7471ed7d-b1d4-4cf8-a832-e0ccbd56c73b.jpeg"
     },
     {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/75e2862a-9569-4f45-9c28-de6506a95e5c.jpeg",
@@ -270,6 +372,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/94780362-bff7-4cdd-b84e-777d3d8e2a09.jpeg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/973c3d47-4eaa-4dc8-8753-db83e5be8291.jpg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/973c3d47-4eaa-4dc8-8753-db83e5be8291.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/973c3d47-4eaa-4dc8-8753-db83e5be8291.jpg"
     },
     {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/a5a640f7-d9ab-48e6-8d39-c0ae54eaab44.jpeg",
@@ -340,6 +459,40 @@
       "OriginalItemSpec": "wwwroot/uploads/b245c5a8-d64a-4e99-bb39-4c3c8ca47158.jpeg"
     },
     {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/b75b3295-7620-4b1d-9b52-069db9ff9697.jpg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/b75b3295-7620-4b1d-9b52-069db9ff9697.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/b75b3295-7620-4b1d-9b52-069db9ff9697.jpg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/bead556e-a899-40d2-89ef-e72fb361ad47.jpg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/bead556e-a899-40d2-89ef-e72fb361ad47.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/bead556e-a899-40d2-89ef-e72fb361ad47.jpg"
+    },
+    {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/bfaf65a3-0109-42f4-8ad3-b7cc08795955.jpeg",
       "SourceId": "PlantopiaApi",
       "SourceType": "Discovered",
@@ -355,6 +508,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/bfaf65a3-0109-42f4-8ad3-b7cc08795955.jpeg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/c5391724-1f54-49fb-b593-e01ddd20403c.jpeg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/c5391724-1f54-49fb-b593-e01ddd20403c.jpeg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/c5391724-1f54-49fb-b593-e01ddd20403c.jpeg"
     },
     {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/c549138d-bdd0-401a-98ff-615bcc5d90c9.jpeg",
@@ -474,6 +644,23 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "wwwroot/uploads/f3d96b0a-6e77-4485-9693-0263637695b2.jpeg"
+    },
+    {
+      "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/f48fc33e-ca6e-4142-8e84-e03a4cd03f7c.jpg",
+      "SourceId": "PlantopiaApi",
+      "SourceType": "Discovered",
+      "ContentRoot": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/",
+      "BasePath": "_content/PlantopiaApi",
+      "RelativePath": "uploads/f48fc33e-ca6e-4142-8e84-e03a4cd03f7c.jpg",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot/uploads/f48fc33e-ca6e-4142-8e84-e03a4cd03f7c.jpg"
     },
     {
       "Identity": "/Users/user/RiderProjects/PlantopiaApi/PlantopiaApi/wwwroot/uploads/f8040697-dc84-4908-8474-fa75a940ab58.jpeg",

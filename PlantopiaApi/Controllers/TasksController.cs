@@ -44,11 +44,7 @@ namespace PlantopiaApi.Controllers
                 })
                 .ToListAsync();
 
-            if (tasks.Count == 0)
-            {
-                return NotFound(new { message = $"Задачи для пользователя с ID {userId} не найдены." });
-            }
-
+            // Возвращаем массив всегда, даже если он пустой
             return Ok(tasks);
         }
 
@@ -78,11 +74,7 @@ namespace PlantopiaApi.Controllers
                 })
                 .ToListAsync();
 
-            if (tasks.Count == 0)
-            {
-                return NotFound(new { message = $"Задачи для пользователя с ID {request.UserId} не найдены." });
-            }
-
+            // Возвращаем массив всегда, даже если он пустой
             return Ok(tasks);
         }
 
