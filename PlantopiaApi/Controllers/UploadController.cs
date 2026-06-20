@@ -1,4 +1,3 @@
-// Controllers/UploadController.cs
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using System.IO;

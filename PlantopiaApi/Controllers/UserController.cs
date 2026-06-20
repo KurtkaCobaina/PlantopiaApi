@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace PlantopiaApi.Controllers
 {
@@ -26,14 +27,12 @@ namespace PlantopiaApi.Controllers
                 return BadRequest("Требуются поля 'userId' и 'apiKey'.");
             }
 
-            // Парсим userId как число
             if (userIdElement.ValueKind != JsonValueKind.Number || 
                 !userIdElement.TryGetInt32(out var userId))
             {
                 return BadRequest("'userId' должен быть целым числом.");
             }
 
-            // Парсим apiKey как строку
             if (apiKeyElement.ValueKind != JsonValueKind.String)
             {
                 return BadRequest("'apiKey' должен быть строкой.");
@@ -50,6 +49,7 @@ namespace PlantopiaApi.Controllers
 
             return Ok(new { message = "API ключ обновлён." });
         }
+
         [HttpPut("update-ndvi-api-key")]
         public async Task<IActionResult> UpdateNdviApiKey([FromBody] JsonElement body)
         {
@@ -59,14 +59,12 @@ namespace PlantopiaApi.Controllers
                 return BadRequest("Требуются поля 'userId' и 'ndviApiKey'.");
             }
 
-            // Парсим userId как число
             if (userIdElement.ValueKind != JsonValueKind.Number || 
                 !userIdElement.TryGetInt32(out var userId))
             {
                 return BadRequest("'userId' должен быть целым числом.");
             }
 
-            // Парсим ndviApiKey как строку
             if (ndviApiKeyElement.ValueKind != JsonValueKind.String)
             {
                 return BadRequest("'ndviApiKey' должен быть строкой.");
@@ -83,7 +81,7 @@ namespace PlantopiaApi.Controllers
 
             return Ok(new { message = "NDVI API ключ обновлён." });
         }
-        // GET: /api/user/profile — для получения профиля (уже используется во фронте)
+
         [HttpGet("profile")]
         public async Task<IActionResult> GetProfile([FromQuery] int userId)
         {
@@ -93,10 +91,10 @@ namespace PlantopiaApi.Controllers
 
             return Ok(user);
         }
+
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateProfile([FromBody] JsonElement body)
         {
-            // Проверяем наличие userId
             if (!body.TryGetProperty("userId", out var userIdElement) ||
                 userIdElement.ValueKind != JsonValueKind.Number ||
                 !userIdElement.TryGetInt32(out var userId))
@@ -108,18 +106,69 @@ namespace PlantopiaApi.Controllers
             if (user == null)
                 return NotFound("Пользователь не найден.");
 
-            // Обновляем поля, если они присутствуют
+            var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+            var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            var phoneRegex = @"^\+7\d{10}$";
+
             if (body.TryGetProperty("first_name", out var firstNameEl) && firstNameEl.ValueKind == JsonValueKind.String)
-                user.FirstName = firstNameEl.GetString();
+            {
+                var firstName = firstNameEl.GetString();
+                if (!string.IsNullOrWhiteSpace(firstName))
+                {
+                    if (!Regex.IsMatch(firstName.Trim(), nameRegex))
+                    {
+                        return BadRequest(new { message = "Имя должно содержать только буквы." });
+                    }
+                    user.FirstName = firstName;
+                }
+            }
 
             if (body.TryGetProperty("last_name", out var lastNameEl) && lastNameEl.ValueKind == JsonValueKind.String)
-                user.LastName = lastNameEl.GetString();
+            {
+                var lastName = lastNameEl.GetString();
+                if (!string.IsNullOrWhiteSpace(lastName))
+                {
+                    if (!Regex.IsMatch(lastName.Trim(), nameRegex))
+                    {
+                        return BadRequest(new { message = "Фамилия должна содержать только буквы." });
+                    }
+                    user.LastName = lastName;
+                }
+            }
 
             if (body.TryGetProperty("email", out var emailEl) && emailEl.ValueKind == JsonValueKind.String)
-                user.Email = emailEl.GetString();
+            {
+                var email = emailEl.GetString();
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    if (!Regex.IsMatch(email.Trim(), emailRegex))
+                    {
+                        return BadRequest(new { message = "Некорректный формат email." });
+                    }
+                    
+                    var normalizedEmail = email.Trim().ToLowerInvariant();
+                    var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Email == normalizedEmail && u.Id != userId);
+                    if (existingUser != null)
+                    {
+                        return BadRequest(new { message = "Этот email уже занят другим пользователем." });
+                    }
+                    
+                    user.Email = normalizedEmail;
+                }
+            }
 
             if (body.TryGetProperty("phone", out var phoneEl) && phoneEl.ValueKind == JsonValueKind.String)
-                user.Phone = phoneEl.GetString();
+            {
+                var phone = phoneEl.GetString();
+                if (!string.IsNullOrWhiteSpace(phone))
+                {
+                    if (!Regex.IsMatch(phone.Trim(), phoneRegex))
+                    {
+                        return BadRequest(new { message = "Номер телефона должен быть в формате +7XXXXXXXXXX." });
+                    }
+                    user.Phone = phone;
+                }
+            }
 
             user.UpdatedAt = DateTime.UtcNow;
 
@@ -130,16 +179,10 @@ namespace PlantopiaApi.Controllers
             }
             catch (DbUpdateException ex)
             {
-                // Например, дубликат email
                 return BadRequest($"Ошибка сохранения: {ex.InnerException?.Message ?? ex.Message}");
             }
         }
-        // Добавьте в конец класса UserController
 
-        /// <summary>
-        /// Самая простая реализация изменения статуса подписки на true
-        /// (использует существующее поле, например ApiKey или другое)
-        /// </summary>
         [HttpPut("update-subscription-status/{userId}")]
         public async Task<IActionResult> UpdateSubscriptionStatus(int userId, [FromBody] JsonElement body)
         {
@@ -147,18 +190,18 @@ namespace PlantopiaApi.Controllers
             if (user == null)
                 return NotFound("Пользователь не найден.");
 
-            // По умолчанию — активировать
             bool newStatus = true;
 
-            // Если передано поле "active", используем его
-            if (body.TryGetProperty("active", out var activeEl) && 
-                activeEl.ValueKind == JsonValueKind.True)
+            if (body.TryGetProperty("active", out var activeEl))
             {
-                newStatus = true;
-            }
-            else if (activeEl.ValueKind == JsonValueKind.False)
-            {
-                newStatus = false;
+                if (activeEl.ValueKind == JsonValueKind.True)
+                {
+                    newStatus = true;
+                }
+                else if (activeEl.ValueKind == JsonValueKind.False)
+                {
+                    newStatus = false;
+                }
             }
 
             user.SubscriptionStatus = newStatus;

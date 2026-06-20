@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
+using System.Text.RegularExpressions;
 
 namespace PlantopiaApi.Controllers;
 
@@ -15,22 +16,27 @@ public class RegistrationController : ControllerBase
         _context = context;
     }
 
-    /// <summary>
-    /// Регистрация нового пользователя (Фермера)
-    /// </summary>
     [HttpPost("register")]
     public IActionResult Register([FromBody] User user)
     {
-        // Валидация обязательных полей
         if (string.IsNullOrWhiteSpace(user?.Email) || string.IsNullOrWhiteSpace(user.Password))
         {
             return BadRequest(new { message = "Email и пароль обязательны." });
         }
 
-        // Нормализуем email: убираем пробелы и приводим к нижнему регистру
+        if (user.Password.Length < 6 || user.Password.Length > 128)
+        {
+            return BadRequest(new { message = "Пароль должен содержать от 6 до 128 символов." });
+        }
+
+        var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+        if (!Regex.IsMatch(user.Email.Trim(), emailRegex))
+        {
+            return BadRequest(new { message = "Некорректный формат email." });
+        }
+
         var emailNormalized = user.Email.Trim().ToLowerInvariant();
 
-        // Загружаем все email'ы в память и проверяем уникальность
         var existingEmails = _context.Users
             .Select(u => u.Email)
             .ToList();
@@ -42,14 +48,39 @@ public class RegistrationController : ControllerBase
             return BadRequest(new { message = "Пользователь с таким email уже существует." });
         }
 
-        // Устанавливаем значения по умолчанию
+        if (!string.IsNullOrWhiteSpace(user.Phone))
+        {
+            var phoneRegex = @"^\+7\d{10}$";
+            if (!Regex.IsMatch(user.Phone.Trim(), phoneRegex))
+            {
+                return BadRequest(new { message = "Номер телефона должен быть в формате +7XXXXXXXXXX (например, +79625577767)." });
+            }
+        }
+
+        var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+        
+        if (!string.IsNullOrWhiteSpace(user.FirstName))
+        {
+            if (!Regex.IsMatch(user.FirstName.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Имя должно содержать только буквы." });
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.LastName))
+        {
+            if (!Regex.IsMatch(user.LastName.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Фамилия должна содержать только буквы." });
+            }
+        }
+
         user.Email = emailNormalized;
-        user.UserRole = "farmer";           // роль по умолчанию
-        user.SubscriptionStatus = false;    // подписка отключена
+        user.UserRole = "farmer";
+        user.SubscriptionStatus = false;
         user.CreatedAt = DateTime.UtcNow;
         user.UpdatedAt = DateTime.UtcNow;
 
-        // Обнуляем навигационные свойства (защита от ошибок сериализации)
         user.ConsultationsAsUser = null;
         user.Diagnoses = null;
         user.FertilizerCalculations = null;
@@ -57,11 +88,9 @@ public class RegistrationController : ControllerBase
         user.SoilTests = null;
         user.UserTasks = null;
 
-        // Сохраняем в БД
         _context.Users.Add(user);
         _context.SaveChanges();
 
-        // Возвращаем подтверждение (без пароля и ключей)
         return Created($"/api/users/{user.Id}", new
         {
             id = user.Id,
@@ -74,16 +103,17 @@ public class RegistrationController : ControllerBase
         });
     }
 
-    /// <summary>
-    /// Регистрация нового ЭКСПЕРТА
-    /// </summary>
     [HttpPost("register-expert")]
     public IActionResult RegisterExpert([FromBody] Expert expert)
     {
-        // Валидация обязательных полей
         if (string.IsNullOrWhiteSpace(expert?.Email) || string.IsNullOrWhiteSpace(expert.Password))
         {
             return BadRequest(new { message = "Email и пароль обязательны." });
+        }
+
+        if (expert.Password.Length < 6 || expert.Password.Length > 128)
+        {
+            return BadRequest(new { message = "Пароль должен содержать от 6 до 128 символов." });
         }
 
         if (string.IsNullOrWhiteSpace(expert.Specialization))
@@ -91,11 +121,14 @@ public class RegistrationController : ControllerBase
             return BadRequest(new { message = "Специализация обязательна для эксперта." });
         }
 
-        // Нормализуем email
+        var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+        if (!Regex.IsMatch(expert.Email.Trim(), emailRegex))
+        {
+            return BadRequest(new { message = "Некорректный формат email." });
+        }
+
         var emailNormalized = expert.Email.Trim().ToLowerInvariant();
 
-        // Проверяем уникальность Email среди экспертов
-        // (Можно также проверить и среди Users, если хотите глобальную уникальность email во всей системе)
         var existingExpertEmails = _context.Experts
             .Select(e => e.Email)
             .ToList();
@@ -107,22 +140,82 @@ public class RegistrationController : ControllerBase
             return BadRequest(new { message = "Эксперт с таким email уже существует." });
         }
 
-        // Устанавливаем значения по умолчанию
+        if (!string.IsNullOrWhiteSpace(expert.Phone))
+        {
+            var phoneRegex = @"^\+7\d{10}$";
+            if (!Regex.IsMatch(expert.Phone.Trim(), phoneRegex))
+            {
+                return BadRequest(new { message = "Номер телефона должен быть в формате +7XXXXXXXXXX (например, +79625577767)." });
+            }
+        }
+
+        var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+        
+        if (!string.IsNullOrWhiteSpace(expert.FirstName))
+        {
+            if (!Regex.IsMatch(expert.FirstName.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Имя должно содержать только буквы." });
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(expert.LastName))
+        {
+            if (!Regex.IsMatch(expert.LastName.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Фамилия должна содержать только буквы." });
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(expert.Specialization))
+        {
+            if (!Regex.IsMatch(expert.Specialization.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Специализация должна содержать только буквы." });
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(expert.Country))
+        {
+            if (!Regex.IsMatch(expert.Country.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Страна должна содержать только буквы." });
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(expert.Region))
+        {
+            if (!Regex.IsMatch(expert.Region.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Регион должен содержать только буквы." });
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(expert.City))
+        {
+            if (!Regex.IsMatch(expert.City.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Город должен содержать только буквы." });
+            }
+        }
+
+        if (expert.ExperienceYears <= 0 || expert.ExperienceYears >= 100)
+        {
+            return BadRequest(new { message = "Стаж работы должен быть больше 0 и меньше 100 лет." });
+        }
+
+        if (expert.HourlyRate <= 500 || expert.HourlyRate >= 100000)
+        {
+            return BadRequest(new { message = "Часовая ставка должна быть больше 500 и меньше 100000." });
+        }
+
         expert.Email = emailNormalized;
         expert.CreatedAt = DateTime.UtcNow;
-        expert.IsAvailable = true; // По умолчанию эксперт доступен
+        expert.IsAvailable = true;
         
-        // Если есть поле UpdatedAt в модели Expert, раскомментируйте:
-        // expert.UpdatedAt = DateTime.UtcNow;
-
-        // Обнуляем навигационные свойства, если они есть в модели Expert
-        // expert.ConsultationsAsExpert = null; 
-
-        // Сохраняем в БД
         _context.Experts.Add(expert);
         _context.SaveChanges();
 
-        // Возвращаем подтверждение (без пароля)
         return Created($"/api/experts/{expert.Id}", new
         {
             id = expert.Id,

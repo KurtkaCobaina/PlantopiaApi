@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
+using PlantopiaApi.Units;
+using System.Text.RegularExpressions;
 
 namespace PlantopiaApi.Controllers
 {
@@ -16,9 +18,6 @@ namespace PlantopiaApi.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Получает список всех экспертов
-        /// </summary>
         [HttpGet]
         public async Task<ActionResult<List<Expert>>> GetAllExperts()
         {
@@ -26,9 +25,6 @@ namespace PlantopiaApi.Controllers
             return Ok(experts);
         }
 
-        /// <summary>
-        /// Получает эксперта по ID
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<Expert>> GetExpertById(int id)
         {
@@ -42,10 +38,6 @@ namespace PlantopiaApi.Controllers
             return Ok(expert);
         }
 
-        /// <summary>
-        /// Обновляет профиль эксперта
-        /// Фронтенд отправляет userId (который для эксперта равен его Id в таблице Experts) и новые данные.
-        /// </summary>
         [HttpPut("profile")]
         public async Task<IActionResult> UpdateExpertProfile([FromBody] UpdateExpertRequest request)
         {
@@ -54,7 +46,6 @@ namespace PlantopiaApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            // Ищем эксперта по ID (который приходит как userId с фронтенда)
             var expert = await _context.Experts.FindAsync(request.UserId);
 
             if (expert == null)
@@ -62,21 +53,106 @@ namespace PlantopiaApi.Controllers
                 return NotFound(new { message = "Эксперт не найден" });
             }
 
-            // Обновляем поля
-            expert.FirstName = request.FirstName ?? expert.FirstName;
-            expert.LastName = request.LastName ?? expert.LastName;
-            expert.Email = request.Email ?? expert.Email;
-            expert.Phone = request.Phone ?? expert.Phone;
-            
-            // Специфичные поля эксперта
-            expert.Specialization = request.Specialization ?? expert.Specialization;
-            expert.ExperienceYears = request.ExperienceYears ?? expert.ExperienceYears;
-            expert.HourlyRate = request.HourlyRate ?? expert.HourlyRate;
-            expert.Country = request.Country ?? expert.Country;
-            expert.Region = request.Region ?? expert.Region;
-            expert.City = request.City ?? expert.City;
+            var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+            var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            var phoneRegex = @"^\+7\d{10}$";
 
-      
+            if (!string.IsNullOrWhiteSpace(request.FirstName))
+            {
+                if (!Regex.IsMatch(request.FirstName.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Имя должно содержать только буквы." });
+                }
+                expert.FirstName = request.FirstName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.LastName))
+            {
+                if (!Regex.IsMatch(request.LastName.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Фамилия должна содержать только буквы." });
+                }
+                expert.LastName = request.LastName;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Email))
+            {
+                if (!Regex.IsMatch(request.Email.Trim(), emailRegex))
+                {
+                    return BadRequest(new { message = "Некорректный формат email." });
+                }
+
+                var normalizedEmail = request.Email.Trim().ToLowerInvariant();
+                var existingExpert = await _context.Experts.FirstOrDefaultAsync(e => e.Email == normalizedEmail && e.Id != request.UserId);
+                if (existingExpert != null)
+                {
+                    return BadRequest(new { message = "Этот email уже занят другим экспертом." });
+                }
+                expert.Email = normalizedEmail;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Phone))
+            {
+                if (!Regex.IsMatch(request.Phone.Trim(), phoneRegex))
+                {
+                    return BadRequest(new { message = "Номер телефона должен быть в формате +7XXXXXXXXXX." });
+                }
+                expert.Phone = request.Phone;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Specialization))
+            {
+                if (!Regex.IsMatch(request.Specialization.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Специализация должна содержать только буквы." });
+                }
+                expert.Specialization = request.Specialization;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Country))
+            {
+                if (!Regex.IsMatch(request.Country.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Страна должна содержать только буквы." });
+                }
+                expert.Country = request.Country;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.Region))
+            {
+                if (!Regex.IsMatch(request.Region.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Регион должен содержать только буквы." });
+                }
+                expert.Region = request.Region;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.City))
+            {
+                if (!Regex.IsMatch(request.City.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Город должен содержать только буквы." });
+                }
+                expert.City = request.City;
+            }
+
+            if (request.ExperienceYears.HasValue)
+            {
+                if (request.ExperienceYears.Value <= 0 || request.ExperienceYears.Value >= 100)
+                {
+                    return BadRequest(new { message = "Стаж работы должен быть больше 0 и меньше 100 лет." });
+                }
+                expert.ExperienceYears = request.ExperienceYears.Value;
+            }
+
+            if (request.HourlyRate.HasValue)
+            {
+                if (request.HourlyRate.Value <= 500 || request.HourlyRate.Value >= 100000)
+                {
+                    return BadRequest(new { message = "Часовая ставка должна быть больше 500 и меньше 100000." });
+                }
+                expert.HourlyRate = request.HourlyRate.Value;
+            }
 
             try
             {
@@ -101,23 +177,5 @@ namespace PlantopiaApi.Controllers
         {
             return _context.Experts.Any(e => e.Id == id);
         }
-    }
-
-    // DTO для запроса обновления профиля эксперта
-    public class UpdateExpertRequest
-    {
-        public int UserId { get; set; } // Это ID эксперта
-        
-        public string? FirstName { get; set; }
-        public string? LastName { get; set; }
-        public string? Email { get; set; }
-        public string? Phone { get; set; }
-        
-        public string? Specialization { get; set; }
-        public int? ExperienceYears { get; set; }
-        public decimal? HourlyRate { get; set; }
-        public string? Country { get; set; }
-        public string? Region { get; set; }
-        public string? City { get; set; }
     }
 }

@@ -20,23 +20,17 @@ public class DiagnosesController : ControllerBase
         _environment = environment;
     }
 
-    /// <summary>
-    /// Сохраняет результат диагностики растения.
-    /// UserId передаётся в теле запроса (из sessionStorage фронтенда).
-    /// </summary>
     [HttpPost("save-diagnosis")]
     public async Task<IActionResult> SaveDiagnosis([FromBody] JsonElement requestBody)
     {
         try
         {
-            // 1. Валидация userId
             if (!requestBody.TryGetProperty("userId", out var userIdEl) ||
                 !userIdEl.TryGetInt32(out var userId) || userId <= 0)
             {
                 return BadRequest("Valid 'userId' (positive integer) is required.");
             }
 
-            // 2. Валидация imageUrl
             if (!requestBody.TryGetProperty("imageUrl", out var imageUrlEl))
             {
                 return BadRequest("'imageUrl' is required.");
@@ -47,13 +41,11 @@ public class DiagnosesController : ControllerBase
                 return BadRequest("'imageUrl' cannot be empty.");
             }
 
-            // 3. Валидация result
             if (!requestBody.TryGetProperty("result", out var resultEl))
             {
                 return BadRequest("'result' is required.");
             }
 
-            // 4. Извлечение classification
             if (!resultEl.TryGetProperty("classification", out var classificationEl) ||
                 !classificationEl.TryGetProperty("suggestions", out var suggestionsArray))
             {
@@ -70,7 +62,6 @@ public class DiagnosesController : ControllerBase
             string plantName = topSuggestion.GetProperty("name").GetString() ?? "Unknown";
             double confidence = topSuggestion.GetProperty("probability").GetDouble();
 
-            // Common names
             string? commonNames = null;
             if (topSuggestion.TryGetProperty("details", out var detailsEl) &&
                 detailsEl.TryGetProperty("common_names", out var commonNamesEl))
@@ -83,7 +74,6 @@ public class DiagnosesController : ControllerBase
                     commonNames = string.Join(", ", names);
             }
 
-            // 5. Извлечение healthAssessment
             bool issuesDetected = false;
             string? diseaseDetails = null;
 
@@ -114,7 +104,6 @@ public class DiagnosesController : ControllerBase
                 }
             }
 
-            // 6. Создание и сохранение диагноза
             var diagnosis = new Diagnosis
             {
                 UserId = userId,

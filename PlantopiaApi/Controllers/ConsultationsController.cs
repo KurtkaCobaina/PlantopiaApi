@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
+using PlantopiaApi.Units;
+using System.Text.RegularExpressions;
 
 namespace PlantopiaApi.Controllers
 {
@@ -16,9 +18,6 @@ namespace PlantopiaApi.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Создает новую заявку на консультацию с проверкой локации и лимита часов
-        /// </summary>
         [HttpPost]
         public async Task<IActionResult> CreateConsultation([FromBody] Consultation consultation)
         {
@@ -27,27 +26,69 @@ namespace PlantopiaApi.Controllers
                 return BadRequest(ModelState);
             }
 
-            // 1. Проверка существования пользователя
             var userExists = await _context.Users.AnyAsync(u => u.Id == consultation.UserId);
             if (!userExists)
             {
                 return BadRequest(new { message = "Пользователь не найден." });
             }
 
-            // 2. Проверка существования эксперта
             var expert = await _context.Experts.FindAsync(consultation.ExpertId);
             if (expert == null)
             {
                 return BadRequest(new { message = "Эксперт не найден." });
             }
 
-            // 3. ПРОВЕРКА ЛОКАЦИИ
+            var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+
+            if (!string.IsNullOrWhiteSpace(consultation.Country))
+            {
+                if (!Regex.IsMatch(consultation.Country.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Страна должна содержать только буквы." });
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(consultation.Region))
+            {
+                if (!Regex.IsMatch(consultation.Region.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Регион должен содержать только буквы." });
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(consultation.City))
+            {
+                if (!Regex.IsMatch(consultation.City.Trim(), nameRegex))
+                {
+                    return BadRequest(new { message = "Город должен содержать только буквы." });
+                }
+            }
+
+            if (consultation.Hours <= 0 || consultation.Hours >= 6)
+            {
+                return BadRequest(new { message = "Количество часов должно быть больше 0 и меньше 6." });
+            }
+
+            var scheduledDateUtc = DateTime.SpecifyKind(consultation.ScheduledDate, DateTimeKind.Utc);
+            var nowUtc = DateTime.UtcNow;
+
+            if (scheduledDateUtc.Date < nowUtc.Date)
+            {
+                return BadRequest(new { message = "Нельзя записаться на дату в прошлом." });
+            }
+
+            var maxDate = nowUtc.AddMonths(2);
+            if (scheduledDateUtc.Date > maxDate.Date)
+            {
+                return BadRequest(new { message = "Запись возможна максимум на 2 месяца вперед." });
+            }
+
             bool isLocationMatch = true;
             string? mismatchField = null;
 
             if (!string.IsNullOrWhiteSpace(consultation.Country) && !string.IsNullOrWhiteSpace(expert.Country))
             {
-                if (!NormalizeLocation(consultation.Country).Equals(NormalizeLocation(expert.Country), StringComparison.OrdinalIgnoreCase))
+                if (!IsLocationSimilar(consultation.Country, expert.Country))
                 {
                     isLocationMatch = false;
                     mismatchField = "стране";
@@ -61,7 +102,7 @@ namespace PlantopiaApi.Controllers
 
             if (isLocationMatch && !string.IsNullOrWhiteSpace(consultation.Region) && !string.IsNullOrWhiteSpace(expert.Region))
             {
-                if (!NormalizeLocation(consultation.Region).Equals(NormalizeLocation(expert.Region), StringComparison.OrdinalIgnoreCase))
+                if (!IsLocationSimilar(consultation.Region, expert.Region))
                 {
                     isLocationMatch = false;
                     mismatchField = "регионе/области";
@@ -70,7 +111,7 @@ namespace PlantopiaApi.Controllers
 
             if (isLocationMatch && !string.IsNullOrWhiteSpace(consultation.City) && !string.IsNullOrWhiteSpace(expert.City))
             {
-                if (!NormalizeLocation(consultation.City).Equals(NormalizeLocation(expert.City), StringComparison.OrdinalIgnoreCase))
+                if (!IsLocationSimilar(consultation.City, expert.City))
                 {
                     isLocationMatch = false;
                     mismatchField = "городе";
@@ -85,9 +126,7 @@ namespace PlantopiaApi.Controllers
                 });
             }
 
-            // 4. ПРОВЕРКА ЛИМИТА ЧАСОВ
-            var scheduledDateUtc = DateTime.SpecifyKind(consultation.ScheduledDate, DateTimeKind.Utc);
-            var dateOnlyUtc = DateTime.SpecifyKind(scheduledDateUtc.Date, DateTimeKind.Utc);
+            var dateOnlyUtc = scheduledDateUtc.Date;
 
             var totalHoursBooked = await _context.Consultations
                 .Where(c => c.ExpertId == consultation.ExpertId && 
@@ -104,7 +143,6 @@ namespace PlantopiaApi.Controllers
                 });
             }
 
-            // 5. СОХРАНЕНИЕ ДАННЫХ
             consultation.Status = "pending";
             consultation.ScheduledDate = scheduledDateUtc;
             consultation.CreatedAt = DateTime.UtcNow;
@@ -115,45 +153,31 @@ namespace PlantopiaApi.Controllers
             return CreatedAtAction(nameof(GetConsultation), new { id = consultation.Id }, consultation);
         }
 
-        /// <summary>
-        /// Обновляет статус консультации (Подтвердить/Отклонить/Завершить)
-        /// Доступно только для эксперта, которому принадлежит консультация.
-        /// </summary>
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> UpdateStatus(int id, [FromBody] StatusUpdateRequest request)
         {
-            // Валидация входящих данных
             if (string.IsNullOrEmpty(request.Status))
             {
                 return BadRequest(new { message = "Статус не указан." });
             }
 
-            // Разрешенные статусы
             var allowedStatuses = new[] { "confirmed", "cancelled", "completed" };
             if (!allowedStatuses.Contains(request.Status.ToLower()))
             {
                 return BadRequest(new { message = "Недопустимый статус. Используйте: confirmed, cancelled, completed." });
             }
 
-            // Ищем консультацию
             var consultation = await _context.Consultations.FindAsync(id);
             if (consultation == null)
             {
                 return NotFound(new { message = "Консультация не найдена." });
             }
-
-            // Проверка прав доступа: убедимся, что текущий пользователь является экспертом этой консультации
-            // В реальном приложении здесь лучше брать ExpertId из токена/сессии, а не доверять клиенту.
-            // Но пока мы проверяем, что консультация существует. 
-            // Если нужно строго проверить права, можно добавить параметр expertId в запрос или брать его из контекста авторизации.
             
-            // Опционально: Проверка, что статус меняется логично (например, нельзя завершить отмененную)
             if (consultation.Status == "cancelled" && request.Status != "cancelled")
             {
                  return BadRequest(new { message = "Нельзя изменить статус отмененной консультации." });
             }
 
-            // Обновляем статус
             consultation.Status = request.Status.ToLower();
             
             try
@@ -175,9 +199,6 @@ namespace PlantopiaApi.Controllers
             return Ok(new { message = "Статус успешно обновлен.", newStatus = consultation.Status });
         }
 
-        /// <summary>
-        /// Получает консультацию по ID
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetConsultation(int id)
         {
@@ -189,9 +210,6 @@ namespace PlantopiaApi.Controllers
             return Ok(consultation);
         }
 
-        /// <summary>
-        /// Получает все консультации пользователя
-        /// </summary>
         [HttpGet("user/{userId}")]
         public async Task<IActionResult> GetUserConsultations(int userId)
         {
@@ -203,9 +221,6 @@ namespace PlantopiaApi.Controllers
             return Ok(consultations);
         }
 
-        /// <summary>
-        /// Получает все консультации эксперта
-        /// </summary>
         [HttpGet("expert/{expertId}")]
         public async Task<IActionResult> GetExpertConsultations(int expertId)
         {
@@ -222,33 +237,68 @@ namespace PlantopiaApi.Controllers
             return _context.Consultations.Any(e => e.Id == id);
         }
 
+        private bool IsLocationSimilar(string location1, string location2)
+        {
+            if (string.IsNullOrWhiteSpace(location1) || string.IsNullOrWhiteSpace(location2))
+                return false;
+
+            var normalized1 = NormalizeLocation(location1);
+            var normalized2 = NormalizeLocation(location2);
+
+            if (normalized1 == normalized2)
+                return true;
+
+            double similarity = CalculateSimilarity(normalized1, normalized2);
+            
+            return similarity >= 0.7;
+        }
+
         private string NormalizeLocation(string location)
         {
             if (string.IsNullOrWhiteSpace(location)) return string.Empty;
 
             var normalized = location.Trim().ToLowerInvariant();
 
-            // Удаляем распространенные официальные термины
             var wordsToRemove = new[] { "республика", "федерация", "область", "край", "автономный округ", "г.", "город" };
             foreach (var word in wordsToRemove)
             {
                 normalized = normalized.Replace(word, "").Trim();
             }
 
-            // Убираем лишние пробелы, которые могли остаться после удаления слов
             normalized = string.Join(" ", normalized.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries));
 
-            // Специальные исключения и сокращения
             if (normalized == "российская" || normalized == "рф") normalized = "россия";
             if (normalized == "санкт петербург" || normalized == "питер") normalized = "санкт-петербург";
 
             return normalized;
         }
-    }
 
-    // DTO для запроса обновления статуса
-    public class StatusUpdateRequest
-    {
-        public string Status { get; set; }
+        private double CalculateSimilarity(string s1, string s2)
+        {
+            if (string.IsNullOrEmpty(s1) || string.IsNullOrEmpty(s2))
+                return 0;
+
+            var words1 = s1.Split(new[] { ' ', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+            var words2 = s2.Split(new[] { ' ', '-', '_' }, StringSplitOptions.RemoveEmptyEntries);
+
+            if (words1.Length == 0 || words2.Length == 0)
+                return 0;
+
+            int matches = 0;
+            foreach (var word1 in words1)
+            {
+                foreach (var word2 in words2)
+                {
+                    if (word1.Contains(word2) || word2.Contains(word1))
+                    {
+                        matches++;
+                        break;
+                    }
+                }
+            }
+
+            double maxWords = Math.Max(words1.Length, words2.Length);
+            return matches / maxWords;
+        }
     }
 }

@@ -1,4 +1,4 @@
-// Controllers/FertilizerCalculationController.cs
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;

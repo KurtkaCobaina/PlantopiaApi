@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
 using PlantopiaApi.Units;
+using System.Text.RegularExpressions;
 
 namespace PlantopiaApi.Controllers
 {
@@ -12,7 +13,6 @@ namespace PlantopiaApi.Controllers
     {
         private readonly PlantopiaDbContext _context;
         
-        // Отдельные хранилища для сессий фермеров и экспертов
         private static readonly Dictionary<string, UserSession> _farmerSessions = new();
         private static readonly Dictionary<string, UserSession> _expertSessions = new();
 
@@ -21,15 +21,23 @@ namespace PlantopiaApi.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Авторизация Фермера
-        /// </summary>
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            if (string.IsNullOrWhiteSpace(request.Email) || !Regex.IsMatch(request.Email.Trim(), emailRegex))
+            {
+                return BadRequest(new { message = "Некорректный формат email." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6 || request.Password.Length > 128)
+            {
+                return BadRequest(new { message = "Пароль должен содержать от 6 до 128 символов." });
+            }
+
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email.Trim().ToLowerInvariant());
 
             if (user == null || user.Password != request.Password)
             {
@@ -51,16 +59,25 @@ namespace PlantopiaApi.Controllers
             );
         }
 
-        /// <summary>
-        /// Авторизация Эксперта
-        /// </summary>
         [HttpPost("expert-login")]
         public async Task<IActionResult> ExpertLogin([FromBody] LoginRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            if (string.IsNullOrWhiteSpace(request.Email) || !Regex.IsMatch(request.Email.Trim(), emailRegex))
+            {
+                return BadRequest(new { message = "Некорректный формат email." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Password) || request.Password.Length < 6 || request.Password.Length > 128)
+            {
+                return BadRequest(new { message = "Пароль должен содержать от 6 до 128 символов." });
+            }
+
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var expert = await _context.Experts
-                .FirstOrDefaultAsync(e => e.Email == request.Email && e.Password == request.Password);
+                .FirstOrDefaultAsync(e => e.Email == normalizedEmail && e.Password == request.Password);
 
             if (expert == null)
             {
@@ -87,15 +104,10 @@ namespace PlantopiaApi.Controllers
             );
         }
 
-        /// <summary>
-        /// Универсальный метод создания сессии
-        /// </summary>
         private IActionResult CreateSessionAndResponse(
             Dictionary<string, UserSession> sessionStore,
             int id, string email, string? firstName, string? lastName, string? phone, 
             bool subscriptionStatus, string role, string? apiKey, string? ndviApiKey,
-            
-            // Параметры для эксперта
             string? specialization, int? experienceYears, decimal? hourlyRate,
             string? country, string? region, string? city)
         {
@@ -236,16 +248,31 @@ namespace PlantopiaApi.Controllers
             });
         }
 
-        /// <summary>
-        /// Восстановление пароля для ФЕРМЕРА
-        /// </summary>
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
+            var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            if (string.IsNullOrWhiteSpace(request.Email) || !Regex.IsMatch(request.Email.Trim(), emailRegex))
+            {
+                return BadRequest(new { message = "Некорректный формат email." });
+            }
+
+            var phoneRegex = @"^\+7\d{10}$";
+            if (string.IsNullOrWhiteSpace(request.Phone) || !Regex.IsMatch(request.Phone.Trim(), phoneRegex))
+            {
+                return BadRequest(new { message = "Номер телефона должен быть в формате +7XXXXXXXXXX." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6 || request.NewPassword.Length > 128)
+            {
+                return BadRequest(new { message = "Пароль должен содержать от 6 до 128 символов." });
+            }
+
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var user = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == request.Email && u.Phone == request.Phone);
+                .FirstOrDefaultAsync(u => u.Email == normalizedEmail && u.Phone == request.Phone.Trim());
 
             if (user == null)
                 return Unauthorized(new { message = "Пользователь с такими данными не найден" });
@@ -257,35 +284,40 @@ namespace PlantopiaApi.Controllers
             return Ok(new { message = "Пароль успешно изменен" });
         }
 
-        /// <summary>
-        /// Восстановление пароля для ЭКСПЕРТА
-        /// </summary>
         [HttpPost("expert-forgot-password")]
         public async Task<IActionResult> ExpertForgotPassword([FromBody] ForgotPasswordRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            // Ищем эксперта по Email и Телефону в таблице Experts
+            var emailRegex = @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$";
+            if (string.IsNullOrWhiteSpace(request.Email) || !Regex.IsMatch(request.Email.Trim(), emailRegex))
+            {
+                return BadRequest(new { message = "Некорректный формат email." });
+            }
+
+            var phoneRegex = @"^\+7\d{10}$";
+            if (string.IsNullOrWhiteSpace(request.Phone) || !Regex.IsMatch(request.Phone.Trim(), phoneRegex))
+            {
+                return BadRequest(new { message = "Номер телефона должен быть в формате +7XXXXXXXXXX." });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.NewPassword) || request.NewPassword.Length < 6 || request.NewPassword.Length > 128)
+            {
+                return BadRequest(new { message = "Пароль должен содержать от 6 до 128 символов." });
+            }
+
+            var normalizedEmail = request.Email.Trim().ToLowerInvariant();
             var expert = await _context.Experts
-                .FirstOrDefaultAsync(e => e.Email == request.Email && e.Phone == request.Phone);
+                .FirstOrDefaultAsync(e => e.Email == normalizedEmail && e.Phone == request.Phone.Trim());
 
             if (expert == null)
                 return Unauthorized(new { message = "Эксперт с такими данными не найден" });
 
-            // Обновляем пароль
             expert.Password = request.NewPassword;
            
-            
             await _context.SaveChangesAsync();
 
             return Ok(new { message = "Пароль эксперта успешно изменен" });
-        }
-        
-        public class ForgotPasswordRequest
-        {
-            public string Email { get; set; }
-            public string Phone { get; set; }
-            public string NewPassword { get; set; }
         }
     }
 }

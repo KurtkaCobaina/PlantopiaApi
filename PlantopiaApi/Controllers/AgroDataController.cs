@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
+using System.Text.RegularExpressions;
 
 namespace PlantopiaApi.Controllers
 {
@@ -16,10 +17,6 @@ namespace PlantopiaApi.Controllers
             _context = context;
         }
 
-        // ==========================================
-        // МЕТОДЫ ДЛЯ КУЛЬТУР (CROPS)
-        // ==========================================
-
         [HttpGet("crops")]
         public async Task<ActionResult<List<Crop>>> GetCrops()
         {
@@ -32,10 +29,16 @@ namespace PlantopiaApi.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+            
+            if (string.IsNullOrWhiteSpace(crop.Name) || !Regex.IsMatch(crop.Name.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Название культуры должно содержать только буквы и пробелы." });
+            }
+
             _context.Crops.Add(crop);
             await _context.SaveChangesAsync();
 
-            // Возвращаем созданный объект с новым ID
             return CreatedAtAction(nameof(GetCrops), new { id = crop.Id }, crop);
         }
 
@@ -47,6 +50,13 @@ namespace PlantopiaApi.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+            
+            if (string.IsNullOrWhiteSpace(crop.Name) || !Regex.IsMatch(crop.Name.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Название культуры должно содержать только буквы и пробелы." });
+            }
 
             _context.Entry(crop).State = EntityState.Modified;
 
@@ -83,10 +93,6 @@ namespace PlantopiaApi.Controllers
             return _context.Crops.Any(e => e.Id == id);
         }
 
-        // ==========================================
-        // МЕТОДЫ ДЛЯ ТИПОВ ПОЧВ (SOIL TYPES)
-        // ==========================================
-
         [HttpGet("soil-types")]
         public async Task<ActionResult<List<SoilType>>> GetSoilTypes()
         {
@@ -98,6 +104,13 @@ namespace PlantopiaApi.Controllers
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+            
+            if (string.IsNullOrWhiteSpace(soilType.Name) || !Regex.IsMatch(soilType.Name.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Название типа почвы должно содержать только буквы и пробелы." });
+            }
 
             _context.SoilTypes.Add(soilType);
             await _context.SaveChangesAsync();
@@ -113,6 +126,13 @@ namespace PlantopiaApi.Controllers
 
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
+
+            var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+            
+            if (string.IsNullOrWhiteSpace(soilType.Name) || !Regex.IsMatch(soilType.Name.Trim(), nameRegex))
+            {
+                return BadRequest(new { message = "Название типа почвы должно содержать только буквы и пробелы." });
+            }
 
             _context.Entry(soilType).State = EntityState.Modified;
 

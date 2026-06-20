@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
 using PlantopiaApi.Units;
+using System.Text.RegularExpressions;
 
 namespace PlantopiaApi.Controllers
 {
@@ -17,10 +18,6 @@ namespace PlantopiaApi.Controllers
             _context = context;
         }
 
-        /// <summary>
-        /// Возвращает задачи пользователя по его ID
-        /// </summary>
-        /// <param name="userId">ID пользователя</param>
         [HttpGet("{userId:int}")]
         public async Task<IActionResult> GetUserTasks(int userId)
         {
@@ -44,13 +41,9 @@ namespace PlantopiaApi.Controllers
                 })
                 .ToListAsync();
 
-            // Возвращаем массив всегда, даже если он пустой
             return Ok(tasks);
         }
 
-        /// <summary>
-        /// Альтернативный метод: принимает userId в теле POST-запроса
-        /// </summary>
         [HttpPost("by-user-id")]
         public async Task<IActionResult> GetUserTasksByPost([FromBody] UserIdRequest request)
         {
@@ -74,13 +67,9 @@ namespace PlantopiaApi.Controllers
                 })
                 .ToListAsync();
 
-            // Возвращаем массив всегда, даже если он пустой
             return Ok(tasks);
         }
 
-        /// <summary>
-        /// Создаёт новую задачу для пользователя
-        /// </summary>
         [HttpPost("create-task")]
         public async Task<IActionResult> CreateTask([FromBody] CreateUserTaskRequest request)
         {
@@ -91,11 +80,19 @@ namespace PlantopiaApi.Controllers
                     return BadRequest(ModelState);
                 }
 
-                // Проверяем, существует ли пользователь
                 var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId);
                 if (!userExists)
                 {
                     return BadRequest(new { message = "Пользователь не найден." });
+                }
+
+                var nameRegex = @"^[а-яА-ЯёЁa-zA-Z\s]+$";
+                if (!string.IsNullOrWhiteSpace(request.Title))
+                {
+                    if (!Regex.IsMatch(request.Title.Trim(), nameRegex))
+                    {
+                        return BadRequest(new { message = "Название задачи должно содержать только буквы." });
+                    }
                 }
 
                 var task = new UserTask
@@ -134,9 +131,6 @@ namespace PlantopiaApi.Controllers
             }
         }
 
-        /// <summary>
-        /// Обновляет статус выполнения задачи (completed)
-        /// </summary>
         [HttpPatch("{id:int}/toggle-complete")]
         public async Task<IActionResult> ToggleTaskCompletion(int id)
         {
@@ -146,14 +140,13 @@ namespace PlantopiaApi.Controllers
                 return NotFound(new { message = "Задача не найдена." });
             }
 
-            task.Completed = !task.Completed; // инвертируем статус
+            task.Completed = !task.Completed;
             task.UpdatedAt = DateTime.UtcNow;
 
             try
             {
                 await _context.SaveChangesAsync();
                 
-                // Возвращаем обновлённый статус
                 var response = new
                 {
                     task.Id,
@@ -169,9 +162,6 @@ namespace PlantopiaApi.Controllers
             }
         }
 
-        /// <summary>
-        /// Удаляет задачу по ID
-        /// </summary>
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> DeleteTask(int id)
         {
@@ -184,13 +174,9 @@ namespace PlantopiaApi.Controllers
             _context.UserTasks.Remove(task);
             await _context.SaveChangesAsync();
 
-            return NoContent(); // 204
+            return NoContent();
         }
 
-        /// <summary>
-        /// Возвращает задачу по ID
-        /// </summary>
-        /// <param name="id">ID задачи</param>
         [HttpGet("detail/{id:int}")]
         public async Task<IActionResult> GetTaskById(int id)
         {

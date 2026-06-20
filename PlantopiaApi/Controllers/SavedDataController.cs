@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
-using PlantopiaApi.Units; // <-- Важно: подключаем пространство имен с DTO
+using PlantopiaApi.Units;
 
 namespace PlantopiaApi.Controllers;
 
@@ -15,8 +15,6 @@ public class SavedDataController : ControllerBase
     {
         _context = context;
     }
-
-    // === NDVI MAPS ===
 
     [HttpGet("savedndvi")]
     public IActionResult GetSavedNdvi([FromQuery] int userId)
@@ -46,10 +44,8 @@ public class SavedDataController : ControllerBase
 
         _context.NdviMaps.Remove(ndviMap);
         _context.SaveChanges();
-        return NoContent(); // 204
+        return NoContent();
     }
-
-    // === DIAGNOSES ===
 
     [HttpGet("saveddiagnosis")]
     public IActionResult GetSavedDiagnosis([FromQuery] int userId)
@@ -82,12 +78,9 @@ public class SavedDataController : ControllerBase
         return NoContent();
     }
 
-    // === FERTILIZER CALCULATIONS (ОБНОВЛЕНО) ===
-
     [HttpGet("savedfertilizer")]
     public IActionResult GetSavedFertilizer([FromQuery] int userId)
     {
-        // Выполняем Join с таблицами Crops и SoilTypes, чтобы получить названия
         var calculations = _context.FertilizerCalculations
             .Where(f => f.UserId == userId)
             .Join(_context.Crops, 
@@ -97,14 +90,13 @@ public class SavedDataController : ControllerBase
             .Join(_context.SoilTypes, 
                 joined => joined.calc.SoilId, 
                 soil => soil.Id, 
-                (joined, soil) => new FertilizerCalculationDto // <-- Возвращаем наш DTO из Units
+                (joined, soil) => new FertilizerCalculationDto
                 {
                     Id = joined.calc.Id,
                     UserId = joined.calc.UserId,
                     CropId = joined.calc.CropId,
                     SoilId = joined.calc.SoilId,
                     
-                    // Заполняем названия
                     CropName = joined.crop.Name,       
                     SoilName = soil.Name,              
                     
@@ -115,7 +107,7 @@ public class SavedDataController : ControllerBase
                     RecommendedKKgHa = joined.calc.RecommendedKKgHa,
                     CalculatedAt = joined.calc.CalculatedAt
                 })
-            .OrderByDescending(c => c.CalculatedAt) // Опционально: сортировка по дате (новые сверху)
+            .OrderByDescending(c => c.CalculatedAt)
             .ToList();
 
         return Ok(calculations);

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PlantopiaApi.Data;
 using PlantopiaApi.Models;
+using PlantopiaApi.Units;
 
 namespace PlantopiaApi.Controllers
 {
@@ -18,15 +19,11 @@ namespace PlantopiaApi.Controllers
             _logger = logger;
         }
 
-        /// <summary>
-        /// Сохраняет NDVI-данные (упрощенная версия без JWT)
-        /// </summary>
         [HttpPost("save")]
         public async Task<IActionResult> SaveNdviMap([FromBody] NdviMapRequest request)
         {
             try
             {
-                // Простая валидация
                 if (request == null)
                 {
                     return BadRequest(new { error = "Данные не предоставлены" });
@@ -37,27 +34,24 @@ namespace PlantopiaApi.Controllers
                     return BadRequest(new { error = "ID пользователя обязателен" });
                 }
 
-                // Проверяем существование пользователя
                 var userExists = await _context.Users.AnyAsync(u => u.Id == request.UserId);
                 if (!userExists)
                 {
                     return NotFound(new { error = $"Пользователь с ID {request.UserId} не найден" });
                 }
 
-                // Конвертируем double в decimal для сохранения в БД
                 var ndviMap = new NdviMap
                 {
                     UserId = request.UserId,
                     DateTaken = request.DateTaken == default ? DateTime.UtcNow : request.DateTaken,
                     MapUrl = request.MapUrl ?? string.Empty,
-                    MinNdviValue = Convert.ToDecimal(request.MinNdviValue),  // Явное преобразование
-                    MaxNdviValue = Convert.ToDecimal(request.MaxNdviValue),  // Явное преобразование
-                    AvgNdviValue = Convert.ToDecimal(request.AvgNdviValue),  // Явное преобразование
+                    MinNdviValue = Convert.ToDecimal(request.MinNdviValue),
+                    MaxNdviValue = Convert.ToDecimal(request.MaxNdviValue),
+                    AvgNdviValue = Convert.ToDecimal(request.AvgNdviValue),
                     CloudFilterApplied = request.CloudFilterApplied,
                     CreatedAt = DateTime.UtcNow
                 };
 
-                // Сохраняем в базу
                 _context.NdviMaps.Add(ndviMap);
                 await _context.SaveChangesAsync();
 
@@ -76,17 +70,5 @@ namespace PlantopiaApi.Controllers
                 return StatusCode(500, new { error = "Внутренняя ошибка сервера" });
             }
         }
-    }
-
-    // Модель запроса с double (для приема от фронтенда)
-    public class NdviMapRequest
-    {
-        public int UserId { get; set; }
-        public DateTime DateTaken { get; set; }
-        public string? MapUrl { get; set; }
-        public double MinNdviValue { get; set; }  // Фронтенд отправляет double
-        public double MaxNdviValue { get; set; }  // Фронтенд отправляет double
-        public double AvgNdviValue { get; set; }  // Фронтенд отправляет double
-        public bool CloudFilterApplied { get; set; }
     }
 }
